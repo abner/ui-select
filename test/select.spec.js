@@ -211,7 +211,7 @@ describe('ui-select tests', function() {
 
     expect(getMatchLabel(el)).toEqual('Adam');
   });
-  
+
   it('should correctly render initial state with track by feature', function() {
     var el = compileTemplate(
       '<ui-select ng-model="selection.selected"> \
@@ -319,13 +319,13 @@ describe('ui-select tests', function() {
   it('should toggle allow-clear directive', function() {
     scope.selection.selected = scope.people[0];
     scope.isClearAllowed = false;
-    
+
     var el = createUiSelect({theme : 'select2', allowClear: '{{isClearAllowed}}'});
     var $select = el.scope().$select;
 
     expect($select.allowClear).toEqual(false);
     expect(el.find('.select2-search-choice-close').length).toEqual(0);
-    
+
     // Turn clear on
     scope.isClearAllowed = true;
     scope.$digest();
@@ -1902,6 +1902,48 @@ describe('ui-select tests', function() {
       expect(el.css('left')).toBe(originalLeft);
       expect(el.css('width')).toBe(originalWidth);
     });
+  });
+
+  describe('expose input search value to a model in the parent scope', function() {
+
+        var el;
+
+        function setupSelectComponent(searchEnabled, inputSearchModel) {
+          el = compileTemplate(
+            '<ui-select ng-model="selection.selected" input-search-model="selection.searchValue" search-enabled="' + searchEnabled + '"> \
+              <ui-select-match placeholder="Pick one...">{{$select.selected.name}}</ui-select-match> \
+              <ui-select-choices repeat="person in people | filter: $select.search"> \
+                <div ng-bind-html="person.name | highlight: $select.search"></div> \
+                <div ng-bind-html="person.email | highlight: $select.search"></div> \
+              </ui-select-choices> \
+            </ui-select>'
+          );
+        };
+
+
+        it('init with search text defined in input-search-model', function(){
+          scope.selection.searchValue = "Sam";
+          setupSelectComponent(true, "selection.searchValue");
+          expect(el.scope().$select.search).toEqual("Sam");
+        });
+
+        it('updates search text in $select controller when model defined in input-search-model changes', function() {
+          scope.selection.searchValue = "Sam";
+          setupSelectComponent(true, "selection.searchValue");
+
+          scope.selection.searchValue = "Tom";
+          scope.$digest();
+          expect(el.scope().$select.search).toEqual("Tom");
+        });
+
+        it('updates model defined in input-search-model when user types in search input', function() {
+          scope.selection.searchValue = "Sam";
+          setupSelectComponent(true, "selection.searchValue");
+
+          el.scope().$select.search = "Tom";
+          scope.$digest();
+          expect(scope.selection.searchValue).toEqual("Tom");
+        });
   });
 
 });

@@ -21,7 +21,7 @@ uis.directive('uiSelect',
       if (angular.isDefined(tAttrs.multiple))
         tElement.append("<ui-select-multiple/>").removeAttr('multiple');
       else
-        tElement.append("<ui-select-single/>");       
+        tElement.append("<ui-select-single/>");
 
       return function(scope, element, attrs, ctrls, transcludeFn) {
 
@@ -43,7 +43,7 @@ uis.directive('uiSelect',
 
         $select.onSelectCallback = $parse(attrs.onSelect);
         $select.onRemoveCallback = $parse(attrs.onRemove);
-        
+
         //Set reference to ngModel from uiSelectCtrl
         $select.ngModel = ngModel;
 
@@ -67,6 +67,18 @@ uis.directive('uiSelect',
             var sortable = scope.$eval(attrs.sortable);
             $select.sortable = sortable !== undefined ? sortable : uiSelectConfig.sortable;
         });
+
+        if(angular.isDefined(attrs.inputSearchModel)){
+          $select.search = scope.$parent.$eval(attrs.inputSearchModel);
+
+          scope.$parent.$watch(attrs.inputSearchModel, function(){
+            $select.search = scope.$parent.$eval(attrs.inputSearchModel);
+          });
+
+          scope.$watch('$select.search', function(){
+             scope.$parent.$eval(attrs.inputSearchModel + '= "' + $select.search + '"');
+          });
+        }
 
         attrs.$observe('disabled', function() {
           // No need to use $eval() (thanks to ng-disabled) since we already get a boolean instead of a string
